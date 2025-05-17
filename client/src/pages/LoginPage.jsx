@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import assets from '../assets/assets';
 
 const LoginPage = () => {
@@ -14,6 +15,8 @@ const LoginPage = () => {
   const [bio, setBio] = useState("");
   const [bioSuggestion, setBioSuggestion] = useState("");
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
+
+  const navigate = useNavigate();
 
   const validateName = (name) => /^[a-zA-Z]+([ '-][a-zA-Z]+)*$/.test(name);
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -64,7 +67,11 @@ const LoginPage = () => {
     if (currState === "Login") {
       setMessageType("success");
       setMessage("Login successful!");
-      // Add your login logic here
+      
+      // Add a slight delay before navigation for better UX
+      setTimeout(() => {
+        navigate('/'); // Navigate to home page
+      }, 500);
       return;
     }
   };
