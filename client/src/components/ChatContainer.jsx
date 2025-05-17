@@ -1,29 +1,43 @@
-import React from 'react';
-import assets from '../assets/assets';
+import React, { useEffect, useRef, useState } from 'react';
+import assets, {messagesDummyData} from '../assets/assets';
+import { formatMessageTime } from '../lib/utils';
 
 const ChatContainer = ({ selectedUser, setSelectedUser }) => {
-  const messagesDummyData = [
-    {
-      text: "Hello there!",
-      senderId: "other-user-id",
-      createdAt: "10:00 AM",
-      image: null,
-    },
-    {
-      text: "Hi! How are you?",
-      senderId: "680f50e4f10f3cd28382ecf9",
-      createdAt: "10:01 AM",
-      image: null,
-    },
-  ];
+  const scrollend = useRef(null);
+  const [message, setMessage] = useState('');
+  const [image, setImage] = useState(null);
+
+  useEffect(() => {
+    if (scrollend.current) {
+      scrollend.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messagesDummyData]); // Add dependency to scroll when messages change
+
+  const handleSend = () => {
+    if (!message.trim() && !image) return;
+    // Add your send message logic here
+    setMessage('');
+    setImage(null);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
 
   return selectedUser ? (
     <div className="h-full flex flex-col backdrop-blur-lg relative">
       {/* ---------- Header ---------- */}
       <div className="flex items-center gap-3 py-3 px-4 border-b border-stone-500">
-        <img src={assets.profile_martin} alt="profile" className="w-8 rounded-full" />
+        <img 
+          src={selectedUser.profilePic || assets.avatar_icon} 
+          alt="profile" 
+          className="w-8 rounded-full" 
+        />
         <p className="flex-1 text-lg text-white flex items-center gap-2">
-          Martin Johnson
+          {selectedUser.fullName}
           <span className="w-2 h-2 rounded-full bg-green-500"></span>
         </p>
         <img
@@ -36,7 +50,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }) => {
       </div>
 
       {/* ---------- Chat Area ---------- */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 mb-[80px]">
         {messagesDummyData.map((msg, index) => {
           const isSelf = msg.senderId === '680f50e4f10f3cd28382ecf9';
           return (
@@ -73,7 +87,7 @@ const ChatContainer = ({ selectedUser, setSelectedUser }) => {
                   </div>
                 )}
                 <p className={`text-xs text-gray-400 mt-1 ${isSelf ? 'text-right' : 'text-left'}`}>
-                  {msg.createdAt}
+                  {formatMessageTime(msg.createdAt)}
                 </p>
               </div>
 
@@ -87,6 +101,37 @@ const ChatContainer = ({ selectedUser, setSelectedUser }) => {
             </div>
           );
         })}
+        <div ref={scrollend}></div>
+      </div>
+
+      {/* ---------- Bottom Area ---------- */}
+      <div className='sticky bottom-0 left-0 right-0 flex items-center gap-3 p-3 bg-[#1a1a1a] border-t border-gray-800'>
+        <div className='flex-1 flex items-center bg-gray-100/12 px-3 rounded-full'>
+          <input 
+            type="text" 
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyPress}
+            placeholder='Send a message'
+            className='w-full bg-transparent text-sm p-3 border-none outline-none text-white placeholder-gray-400'
+          />
+          <input 
+            type="file" 
+            id='image' 
+            accept='image/png, image/jpeg' 
+            hidden
+            onChange={(e) => setImage(e.target.files[0])}
+          />
+          <label htmlFor="image">
+            <img src={assets.gallery_icon} alt="attach" className='w-5 mr-2 cursor-pointer'/>
+          </label>
+        </div>
+        <img 
+          src={assets.send_button} 
+          alt="send" 
+          onClick={handleSend}
+          className='w-7 cursor-pointer'
+        />
       </div>
     </div>
   ) : (
